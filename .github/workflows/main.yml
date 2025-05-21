@@ -1,0 +1,51 @@
+name: CI/CD - Java Maven Docker to ECR
+
+on:
+  push:
+    branches:
+      - main
+    # Trigger on merge (PR closed and merged)
+    types: [closed]
+
+jobs:
+  build-and-deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set Image Tag with Timestamp and Merge ID
+        id: set-tag
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          TIME=$(date +%H-%M)
+          MERGE_ID=${{ github.event.pull_request.merge_commit_sha }}
+          TAG="${DATE}-${TIME}-${MERGE_ID}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "Final tag will be: $TAG"
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_REPOSITORY }}:$TAG .
+
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REPOSITORY }}:$TAG
