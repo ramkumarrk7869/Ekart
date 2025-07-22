@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    
+    tools{
+        jdk 'jdk11'
+        maven 'maven3'
+    }
+    
+    environment{
+        SCANNER_HOME= tool 'sonar-scanner'
+    }
+    
+    stages {
+        stage('Git CheckOut') {
+            steps {
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/<GithubRepo>'
+            }
+        }
+        stage('Compile using Maven') {
+            steps {
+                sh "mvn clean compile"
+            }
+        }
+        stage('Analysis using SonarQube') {
+            steps {
+                sh '''
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectKey=shopping-cart \
+                    -Dsonar.projectName=shopping-cart \
+                    -Dsonar.java.binaries=target/classes \
+                    -Dsonar.host.url=http://20.244.106.132:9000 \
+                    -Dsonar.login=<SonarQubeToken>
+                '''
+            }
+        }
+        stage('Scan using OWASP') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'DP'
+                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('Build usin Maven') {
+            steps {
+                sh "mvn clean install -DskipTests=True"
+            }
+        }
+        stage('Build and Push on Docker') {
+            steps {
+                withDockerRegistry(credentialsId: '<DockerCredential>', url: 'https://index.docker.io/v1/') {
+                    sh "docker build -t shopping:latest -f docker/Dockerfile ."
+                    sh "docker tag shopping:latest <DockerUsername>/shopping:latest"
+                    sh "docker push <DockerUsername>/shopping:latest"
+                }
+            }
+        }
+        stage('Trigger CD') {
+            steps {
+                build job: 'CD-Pipeline', wait: true
+            }
+        }
+    }
+}
