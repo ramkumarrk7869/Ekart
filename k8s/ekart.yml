@@ -68,12 +68,12 @@ metadata:
   name: ekart-ingress
   namespace: ekart-ns
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
     - http:
         paths:
-        - path: /ekart(/|$)(.*)
+        - path: /ekart
           pathType: Prefix
           backend:
             service:
