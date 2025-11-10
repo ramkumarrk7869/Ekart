@@ -28,7 +28,7 @@ spec:
           resources:
             requests:
               memory: "256Mi"
-              cpu: "100m"
+              cpu: "300m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -36,13 +36,13 @@ spec:
             httpGet:
               path: /
               port: 8070
-            initialDelaySeconds: 15
+            initialDelaySeconds: 60
             periodSeconds: 20
           readinessProbe:
             httpGet: 
               path: /
               port: 8070
-            initialDelaySeconds: 5
+            initialDelaySeconds: 40
             periodSeconds: 10
 
 ---
