@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: ekart-container 
-          image: g0u74m/Ekart-Java-Webapp:latest
+          image: g0u74m/ekart-java-webapp:latest
           ports:
             - containerPort: 8070
           resources:
