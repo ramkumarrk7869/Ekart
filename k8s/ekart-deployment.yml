@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ekart-deployment
+  namespace: ekart-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ekart-app
+  template:
+    metadata:
+      labels:
+        app: ekart-app
+    spec:
+      containers:
+        - name: ekart-container
+          image: g0u74m/ekart-java-webapp:latest
+          ports:
+            - containerPort: 8070
