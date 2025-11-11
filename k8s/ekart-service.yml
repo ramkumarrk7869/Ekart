@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ekart-service
+  namespace: ekart-ns
+spec:
+  selector:
+    app: ekart-app
+  ports:
+    - protocol: TCP
+      port: 8070
+      targetPort: 8070
+      nodePort: 30003
+  type: NodePort
